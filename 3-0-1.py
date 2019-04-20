@@ -1,32 +1,37 @@
+##本程序现仅能提取“河南农业大学农学院微信公众号的文章”
 import requests
+from bs4 import BeautifulSoup
+import bs4
+import time
+import lxml
 import re
 def getHTMLText(url):
-    f1=open('source.txt','r',encoding='utf-8')
-    return f1.read()
-##    try:
-##        r=requests.get(url)
-##        r.raise_for_status()
-##        r.encoding=r.apparent_encoding
-##        return r.text
-##    except:
-##        print('爬取失败！')
-##        return ''
+    try:
+        r=requests.get(url)
+        r.raise_for_status()
+        r.encoding=r.apparent_encoding
+        return r.text
+    except:
+        print('爬取失败！')
+        return ''
 def extractTxt(txt,ls):
-    plt=re.findall(r'(<span.*</span>)',txt)
-    for i in range(len(plt)):
-        txt1=plt[i].split('<')[1].split('>')[1]
-        ls.append(txt1)
-def save(ls,path='结果.txt'):
-    f=open(path,'w',encoding='utf-8')
+    soup=BeautifulSoup(txt,'lxml')
+    for so in soup.find_all(True):
+        if isinstance(so,bs4.element.Tag):
+            if isinstance(so.string,bs4.element.NavigableString):
+                if so.name=='p':
+                    ls.append(so.string)
+def save(ls,path='文字'):
+    f=open(path+str(time.time()).replace('.','')+'.txt','w',encoding='utf-8')
     print(len(ls))
     for l in ls:
         f.write(l+'\n')
     f.close()
 def main():
-    url='https://mp.weixin.qq.com/s?src=11&timestamp=1555725706&ver=1557&signature=UJf8XtQah9XzpfeyE9uMsLdJwhcqBdyw0HuGMN206T3ctwmXt9VJxPv5nMq56JrnFnA5qCbfIvhzeGoBvgZFBJpC5tAra2NapeDdD-ct8aS8PvlVKP0NDNtcJ8Wclv-*&new=1'
+    url=input('请输入微信公众号文章的链接：')
     txt=getHTMLText(url)
+    txt=re.sub(r'<[^<>]+?/>','',txt)
     ls=[]
     extractTxt(txt,ls)
     save(ls)
 main()
-    
