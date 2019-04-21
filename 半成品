@@ -1,10 +1,24 @@
-##本程序现仅能提取“河南农业大学农学院微信公众号的文章”
-import requests
-from bs4 import BeautifulSoup
 import bs4
 import time
 import lxml
 import re
+def standardization():
+    global txt
+    start,end=0,len(txt)
+    while True:
+        match1=re.search(r'>[^<>/]+?<span',txt[start:])
+        if match1:
+            start=match1.end()-2-3
+            cut1,cut2=match1.start()+1,match1.end()-2-3
+        else:
+            break
+        match2=re.search(r'>[^<>/]*?</span',txt[start:])
+        if match2:
+            start=match2.end()-2-4
+            insertPoint=match2.start()+1
+        else:
+            break
+        txt=txt[0:cut1]+txt[cut2:insertPoint]+txt[cut1:cut2]+txt[cut2:]
 def getHTMLText(url):
     try:
         r=requests.get(url)
@@ -14,24 +28,29 @@ def getHTMLText(url):
     except:
         print('爬取失败！')
         return ''
-def extractTxt(txt,ls):
+def extractTxt(ls):
+    global txt
+    flag=True
+##    mark=True
     soup=BeautifulSoup(txt,'lxml')
+    #用soup.find_all(True)遍历所有标签
     for so in soup.find_all(True):
+        #判断so是否为标签类型
         if isinstance(so,bs4.element.Tag):
+            #判断一个标签的NavigableString是否存在
             if isinstance(so.string,bs4.element.NavigableString):
                 if so.name in {'p','title','span'}:
-                    txt1=str(so)
-                    if 'span' in txt1:
-                        flag=False
-                    else:
+                    if so.name=='p':
                         flag=True
+                    if so.name=='span':
+                        if so.parent.name=='p':
+                            flag=False
+                        else:
+                            flag=True
                     if flag:
                         ls.append(so.string)
                     else:
-                        if so.name=='span':
-                            continue
-                        else:
-                            ls.append(so.string)
+                        continue
 def save(ls,path='文字'):
     f=open(path+str(time.time()).replace('.','')+'.txt','w',encoding='utf-8')
     print(len(ls))
@@ -39,10 +58,20 @@ def save(ls,path='文字'):
         f.write(l+'\n')
     f.close()
 def main():
+    global txt
     url=input('请输入微信公众号文章的链接：')
     txt=getHTMLText(url)
     txt=re.sub(r'<[^<>]+?/>','',txt)
+    txt=txt.replace('\n','')
+    txt=txt.replace(chr(12288),'')
+    txt=txt.replace(' ','')
+    standardization()
+    f2=open('123.txt','w',encoding='utf-8')
+    f2.write(txt)
+    f2.close()
     ls=[]
-    extractTxt(txt,ls)
+    extractTxt(ls)
     save(ls)
+txt=''
 main()
+
