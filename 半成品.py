@@ -33,7 +33,6 @@ def getHTMLText(url):
 def extractTxt(ls):
     global txt
     flag=True
-##    mark=True
     soup=BeautifulSoup(txt,'lxml')
     #用soup.find_all(True)遍历所有标签
     for so in soup.find_all(True):
