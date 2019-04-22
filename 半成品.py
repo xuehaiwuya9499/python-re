@@ -8,19 +8,23 @@ def standardization():
     global txt
     start,end=0,len(txt)
     while True:
-        match1=re.search(r'>[^<>/]+?<span',txt[start:])
+        a1=re.compile(r'>[^<>/]+?<span')
+        match1=a1.search(txt[start:])
         if match1:
             start=match1.end()-2-3
             cut1,cut2=match1.start()+1,match1.end()-2-3
         else:
             break
-        match2=re.search(r'>[^<>/]*?</span',txt[start:])
+        a2=re.compile(r'>[^<>/]*?</span')
+        match2=a2.search(txt[start:])
         if match2:
             start=match2.end()-2-4
             insertPoint=match2.start()+1
         else:
             break
-        txt=txt[0:cut1]+txt[cut2:insertPoint]+txt[cut1:cut2]+txt[cut2:]
+        txtcatch=txt[0:cut1]+txt[cut2:insertPoint]+txt[cut1:cut2]+txt[insertPoint:]
+        txt=''
+        txt=txtcatch
 def getHTMLText(url):
     try:
         r=requests.get(url)
